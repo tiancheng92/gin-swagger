@@ -1,5 +1,9 @@
 # gin-swagger
 
+* 为减小包体积，删除了[swagger-ui](https://github.com/swagger-api/swagger-ui)中的Source Map文件,仅保留必要的图标、js、css文件。
+* 使用了golang 1.16 的新特性 File Embed，取代原[swaggo/gin-swagger](https://github.com/swaggo/gin-swagger)使用的webdav
+* 预计比原[swaggo/gin-swagger](https://github.com/swaggo/gin-swagger)内存占用少35M+
+
 ## 用法
 1. 下载 [Swag](https://github.com/swaggo/swag)
 ```sh
@@ -40,3 +44,6 @@ func main() {
 	r.Run()
 }
 ```
+
+## 注意
+1. golang版本必须大于等于1.16.0
