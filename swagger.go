@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -14,6 +13,17 @@ import (
 
 //go:embed ui/*
 var ui embed.FS
+
+var (
+	fileList = []string{"index.html", "doc.json", "favicon-16x16.png", "favicon-32x32.png", "swagger-ui.css", "swagger-ui.js", "swagger-ui-bundle.js", "swagger-ui-standalone-preset.js"}
+	t        = template.New("swagger_index.html")
+	index, _ = t.Parse(swaggerIndexTemplate)
+)
+
+type swaggerUIBundle struct {
+	URL         string
+	DeepLinking bool
+}
 
 type Config struct {
 	URL         string
@@ -46,37 +56,28 @@ func WrapHandler(configs ...func(c *Config)) gin.HandlerFunc {
 }
 
 func CustomWrapHandler(config *Config) gin.HandlerFunc {
-	t := template.New("swagger_index.html")
-	index, _ := t.Parse(swaggerIndexTemplate)
+	return func(ctx *gin.Context) {
+		tmp := strings.Split(ctx.Request.RequestURI, "/")
+		path := tmp[len(tmp)-1]
 
-	var regular = regexp.MustCompile(`(.*)(index\.html|doc\.json|favicon-16x16\.png|favicon-32x32\.png|swagger-ui\.css|swagger-ui\.js|swagger-ui-bundle\.js|swagger-ui-standalone-preset\.js)[|.]*`)
-	return func(c *gin.Context) {
-		type swaggerUIBundle struct {
-			URL         string
-			DeepLinking bool
-		}
-
-		var matches []string
-		if matches = regular.FindStringSubmatch(c.Request.RequestURI); len(matches) != 3 {
-			c.Status(404)
-			_, _ = c.Writer.Write([]byte("404 page not found"))
+		if !containsString(fileList, path) {
+			ctx.String(404, "")
 			return
 		}
-		path := matches[2]
 
 		if strings.HasSuffix(path, ".html") {
-			c.Header("Content-Type", "text/html; charset=utf-8")
+			ctx.Header("Content-Type", "text/html; charset=utf-8")
 		} else if strings.HasSuffix(path, ".css") {
-			c.Header("Content-Type", "text/css; charset=utf-8")
+			ctx.Header("Content-Type", "text/css; charset=utf-8")
 		} else if strings.HasSuffix(path, ".js") {
-			c.Header("Content-Type", "application/javascript")
+			ctx.Header("Content-Type", "application/javascript")
 		} else if strings.HasSuffix(path, ".json") {
-			c.Header("Content-Type", "application/json")
+			ctx.Header("Content-Type", "application/json")
 		}
 
 		switch path {
 		case "index.html":
-			_ = index.Execute(c.Writer, &swaggerUIBundle{
+			_ = index.Execute(ctx.Writer, &swaggerUIBundle{
 				URL:         config.URL,
 				DeepLinking: config.DeepLinking,
 			})
@@ -85,11 +86,10 @@ func CustomWrapHandler(config *Config) gin.HandlerFunc {
 			if err != nil {
 				panic(err)
 			}
-			_, _ = c.Writer.Write([]byte(doc))
-			return
+			_, _ = ctx.Writer.Write(stringToBytes(doc))
 		default:
 			f, _ := ui.ReadFile(fmt.Sprintf("ui/%s", path))
-			_, _ = c.Writer.Write(f)
+			_, _ = ctx.Writer.Write(f)
 		}
 	}
 }
@@ -97,8 +97,8 @@ func CustomWrapHandler(config *Config) gin.HandlerFunc {
 func DisablingWrapHandler(envName string) gin.HandlerFunc {
 	eFlag := os.Getenv(envName)
 	if eFlag != "" {
-		return func(c *gin.Context) {
-			c.String(404, "")
+		return func(ctx *gin.Context) {
+			ctx.String(404, "")
 		}
 	}
 	return WrapHandler()
@@ -107,8 +107,8 @@ func DisablingWrapHandler(envName string) gin.HandlerFunc {
 func DisablingCustomWrapHandler(config *Config, envName string) gin.HandlerFunc {
 	eFlag := os.Getenv(envName)
 	if eFlag != "" {
-		return func(c *gin.Context) {
-			c.String(404, "")
+		return func(ctx *gin.Context) {
+			ctx.String(404, "")
 		}
 	}
 	return CustomWrapHandler(config)
