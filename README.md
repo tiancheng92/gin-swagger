@@ -30,9 +30,7 @@ import (
 	"github.com/gin-gonic/gin"
 	ginSwagger "github.com/tiancheng92/gin-swagger"
 
-	"github.com/swaggo/gin-swagger/example/basic/api"
-
-	_ "xxx/docs"
+	_ "./docs"
 )
 
 // @title Swagger Example API
