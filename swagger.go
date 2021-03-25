@@ -2,7 +2,6 @@ package gin_swagger
 
 import (
 	"embed"
-	"fmt"
 	"html/template"
 	"os"
 	"strings"
@@ -88,7 +87,7 @@ func CustomWrapHandler(config *Config) gin.HandlerFunc {
 			}
 			_, _ = ctx.Writer.Write(stringToBytes(doc))
 		default:
-			f, _ := ui.ReadFile(fmt.Sprintf("ui/%s", path))
+			f, _ := ui.ReadFile(strings.Join([]string{"ui", path}, "/"))
 			_, _ = ctx.Writer.Write(f)
 		}
 	}
