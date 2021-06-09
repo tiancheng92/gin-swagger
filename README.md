@@ -1,4 +1,4 @@
-# gin-swagger (swagger-ui版本：v3.48.0)
+# gin-swagger (swagger-ui版本：v3.50.0)
 
 * 为减小包体积，删除了[swagger-ui](https://github.com/swagger-api/swagger-ui)中的Source Map文件,仅保留必要的图标、js、css文件。
 * 使用了golang 1.16 的新特性 File Embed，取代原[swaggo/gin-swagger](https://github.com/swaggo/gin-swagger)使用的webdav
