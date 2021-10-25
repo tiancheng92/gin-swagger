@@ -1,7 +1,6 @@
 package gin_swagger
 
-const swaggerIndexTemplate = `<!-- HTML for static distribution bundle build -->
-<!DOCTYPE html>
+const swaggerIndexTemplate = `<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
