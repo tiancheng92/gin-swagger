@@ -3,8 +3,8 @@ module github.com/tiancheng92/gin-swagger
 go 1.17
 
 require (
-	github.com/gin-gonic/gin v1.7.4
-	github.com/swaggo/swag v1.7.3
+	github.com/gin-gonic/gin v1.7.6
+	github.com/swaggo/swag v1.7.4
 )
 
 require (
