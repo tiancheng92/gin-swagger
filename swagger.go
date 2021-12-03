@@ -56,6 +56,12 @@ func DocExpansion(docExpansion string) func(c *Config) {
 	}
 }
 
+func Title(title string) func(c *Config) {
+	return func(c *Config) {
+		c.Title = title
+	}
+}
+
 func DeepLinking(deepLinking bool) func(c *Config) {
 	return func(c *Config) {
 		c.DeepLinking = deepLinking
