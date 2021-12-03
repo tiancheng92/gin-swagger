@@ -21,7 +21,7 @@ var (
 )
 
 type swaggerUIBundle struct {
-	URL                      template.JS
+	URL                      []SwaggerURL
 	DeepLinking              bool
 	DocExpansion             string
 	DefaultModelsExpandDepth int
@@ -36,7 +36,7 @@ type SwaggerURL struct {
 }
 
 type Config struct {
-	URL                      string
+	URL                      []SwaggerURL
 	DeepLinking              bool
 	DocExpansion             string
 	DefaultModelsExpandDepth int
@@ -45,12 +45,8 @@ type Config struct {
 }
 
 func URL(urls []SwaggerURL) func(c *Config) {
-	var tmp string
-	for i := range urls {
-		tmp += `{url: "` + urls[i].Url + `", name: "` + urls[i].Name + `"},`
-	}
 	return func(c *Config) {
-		c.URL = `urls: [` + tmp + `],`
+		c.URL = urls
 	}
 }
 
@@ -80,7 +76,7 @@ func DefaultModelsExpandDepth(depth int) func(c *Config) {
 
 func WrapHandler(configs ...func(c *Config)) gin.HandlerFunc {
 	defaultConfig := &Config{
-		URL:                      `url: "doc.json",`,
+		URL:                      []SwaggerURL{{Url: "doc.json", Name: "Default"}},
 		DeepLinking:              true,
 		DocExpansion:             "list",
 		DefaultModelsExpandDepth: 1,
@@ -121,7 +117,7 @@ func CustomWrapHandler(config *Config) gin.HandlerFunc {
 		switch path {
 		case "index.html":
 			_ = index.Execute(ctx.Writer, &swaggerUIBundle{
-				URL:                      template.JS(config.URL),
+				URL:                      config.URL,
 				DeepLinking:              config.DeepLinking,
 				DocExpansion:             config.DocExpansion,
 				DefaultModelsExpandDepth: config.DefaultModelsExpandDepth,
