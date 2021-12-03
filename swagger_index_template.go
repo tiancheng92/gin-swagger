@@ -39,23 +39,23 @@ const swaggerIndexTemplate = `<!DOCTYPE html>
     <script>
     window.onload = function() {
       const ui = SwaggerUIBundle({
-        {{ if eq (len .URLList) 1 }}
-		{{ $url := index .URLList 0 }}
+        {{- if eq (len .URLList) 1 }}
+        {{- $url := index .URLList 0 }}
 		url: {{ $url.Url }},
-		{{ else }}
+		{{- else }}
 		urls: [
-        {{ range .URLList }}
-			{ url:"{{ .Url }}", name: "{{ .Name }}" },
-		{{end}}
+			{{- range .URLList }}
+		  { url:"{{ .Url }}", name: "{{ .Name }}" },
+			{{- end }}
 		],
-		{{end}}
+		{{- end }}
 		dom_id: '#swagger-ui',
 		validatorUrl: null,
 		oauth2RedirectUrl: {{ .Oauth2RedirectURL }},
 		docExpansion: "{{ .DocExpansion }}",
 		deepLinking: {{ .DeepLinking }},
 		defaultModelsExpandDepth: {{ .DefaultModelsExpandDepth }},
-		filter: {{ .ShowFilterTag }}，
+		filter: {{ .ShowFilterTag }},
         presets: [
           SwaggerUIBundle.presets.apis,
           SwaggerUIStandalonePreset
