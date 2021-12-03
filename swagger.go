@@ -3,6 +3,7 @@ package gin_swagger
 import (
 	"embed"
 	"html/template"
+	"net/http"
 	"os"
 	"strings"
 
@@ -14,24 +15,48 @@ import (
 var ui embed.FS
 
 var (
-	fileList = []string{"index.html", "doc.json", "favicon-16x16.png", "favicon-32x32.png", "swagger-ui.css", "swagger-ui.js", "swagger-ui-bundle.js", "swagger-ui-standalone-preset.js"}
+	fileList = []string{"index.html", "doc.json", "favicon-16x16.png", "favicon-32x32.png", "swagger-ui.css", "swagger-ui.js", "swagger-ui-bundle.js", "swagger-ui-standalone-preset.js", "oauth2-redirect.html"}
 	t        = template.New("swagger_index.html")
 	index, _ = t.Parse(swaggerIndexTemplate)
 )
 
 type swaggerUIBundle struct {
-	URL         string
-	DeepLinking bool
+	URL                      string
+	DeepLinking              bool
+	DocExpansion             string
+	DefaultModelsExpandDepth int
+	Oauth2RedirectURL        template.JS
+	Title                    string
+	ShowFilterTag            bool
+}
+
+type SwaggerURL struct {
+	Url  string
+	Name string
 }
 
 type Config struct {
-	URL         string
-	DeepLinking bool
+	URL                      string
+	DeepLinking              bool
+	DocExpansion             string
+	DefaultModelsExpandDepth int
+	Title                    string
+	ShowFilterTag            bool
 }
 
-func URL(url string) func(c *Config) {
+func URL(urls []SwaggerURL) func(c *Config) {
+	var tmp string
+	for i := range urls {
+		tmp += `{url: "` + urls[i].Url + `", name: "` + urls[i].Name + `"},`
+	}
 	return func(c *Config) {
-		c.URL = url
+		c.URL = `urls: [` + tmp + `],`
+	}
+}
+
+func DocExpansion(docExpansion string) func(c *Config) {
+	return func(c *Config) {
+		c.DocExpansion = docExpansion
 	}
 }
 
@@ -41,10 +66,25 @@ func DeepLinking(deepLinking bool) func(c *Config) {
 	}
 }
 
+func ShowFilterTag(showFilterTag bool) func(c *Config) {
+	return func(c *Config) {
+		c.ShowFilterTag = showFilterTag
+	}
+}
+
+func DefaultModelsExpandDepth(depth int) func(c *Config) {
+	return func(c *Config) {
+		c.DefaultModelsExpandDepth = depth
+	}
+}
+
 func WrapHandler(configs ...func(c *Config)) gin.HandlerFunc {
 	defaultConfig := &Config{
-		URL:         "doc.json",
-		DeepLinking: true,
+		URL:                      `url: "doc.json",`,
+		DeepLinking:              true,
+		DocExpansion:             "list",
+		DefaultModelsExpandDepth: 1,
+		Title:                    "Swagger UI",
 	}
 
 	for _, c := range configs {
@@ -55,12 +95,16 @@ func WrapHandler(configs ...func(c *Config)) gin.HandlerFunc {
 }
 
 func CustomWrapHandler(config *Config) gin.HandlerFunc {
+	if config.Title == "" {
+		config.Title = "Swagger UI"
+	}
+
 	return func(ctx *gin.Context) {
 		tmp := strings.Split(ctx.Request.RequestURI, "/")
 		path := tmp[len(tmp)-1]
 
 		if !containsString(fileList, path) {
-			ctx.String(404, "")
+			ctx.String(http.StatusNotFound, "")
 			return
 		}
 
@@ -77,8 +121,17 @@ func CustomWrapHandler(config *Config) gin.HandlerFunc {
 		switch path {
 		case "index.html":
 			_ = index.Execute(ctx.Writer, &swaggerUIBundle{
-				URL:         config.URL,
-				DeepLinking: config.DeepLinking,
+				URL:                      config.URL,
+				DeepLinking:              config.DeepLinking,
+				DocExpansion:             config.DocExpansion,
+				DefaultModelsExpandDepth: config.DefaultModelsExpandDepth,
+				Oauth2RedirectURL: template.JS(
+					"`${window.location.protocol}//${window.location.host}$" +
+						"{window.location.pathname.split('/').slice(0, window.location.pathname.split('/').length - 1).join('/')}" +
+						"/oauth2-redirect.html`",
+				),
+				Title:         config.Title,
+				ShowFilterTag: config.ShowFilterTag,
 			})
 		case "doc.json":
 			doc, err := swag.ReadDoc()
@@ -97,7 +150,7 @@ func DisablingWrapHandler(envName string) gin.HandlerFunc {
 	eFlag := os.Getenv(envName)
 	if eFlag != "" {
 		return func(ctx *gin.Context) {
-			ctx.String(404, "")
+			ctx.String(http.StatusNotFound, "")
 		}
 	}
 	return WrapHandler()
@@ -107,7 +160,7 @@ func DisablingCustomWrapHandler(config *Config, envName string) gin.HandlerFunc 
 	eFlag := os.Getenv(envName)
 	if eFlag != "" {
 		return func(ctx *gin.Context) {
-			ctx.String(404, "")
+			ctx.String(http.StatusNotFound, "")
 		}
 	}
 	return CustomWrapHandler(config)
