@@ -21,7 +21,7 @@ var (
 )
 
 type swaggerUIBundle struct {
-	URL                      string
+	URL                      template.JS
 	DeepLinking              bool
 	DocExpansion             string
 	DefaultModelsExpandDepth int
@@ -121,7 +121,7 @@ func CustomWrapHandler(config *Config) gin.HandlerFunc {
 		switch path {
 		case "index.html":
 			_ = index.Execute(ctx.Writer, &swaggerUIBundle{
-				URL:                      config.URL,
+				URL:                      template.JS(config.URL),
 				DeepLinking:              config.DeepLinking,
 				DocExpansion:             config.DocExpansion,
 				DefaultModelsExpandDepth: config.DefaultModelsExpandDepth,
