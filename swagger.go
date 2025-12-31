@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/swaggo/swag"
+	"github.com/swaggo/swag/v2"
 )
 
 //go:embed ui/*
