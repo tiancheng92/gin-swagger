@@ -15,7 +15,7 @@ import (
 var ui embed.FS
 
 var (
-	fileList = []string{"index.html", "doc.json", "favicon-16x16.png", "favicon-32x32.png", "swagger-ui.css", "swagger-ui.js", "swagger-ui-bundle.js", "swagger-ui-standalone-preset.js", "oauth2-redirect.html"}
+	fileList = []string{"index.html", "index.css", "doc.json", "favicon-16x16.png", "favicon-32x32.png", "swagger-ui.css", "swagger-ui.js", "swagger-initializer.js", "swagger-ui-bundle.js", "swagger-ui-standalone-preset.js", "oauth2-redirect.html", "oauth2-redirect.js"}
 	t        = template.New("swagger_index.html")
 	index, _ = t.Parse(swaggerIndexTemplate)
 )
